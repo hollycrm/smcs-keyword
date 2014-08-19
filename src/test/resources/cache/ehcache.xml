@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache>
+
+    <diskStore path="java.io.tmpdir/smcs/content"/>
+
+    <!-- DefaultCache setting. -->
+    <defaultCache maxElementsInMemory="10000" memoryStoreEvictionPolicy="LRU" eternal="false"
+                  timeToIdleSeconds="300" timeToLiveSeconds="300" overflowToDisk="false" diskPersistent="false"/>
+
+    <cache name="freemarker"
+           maxElementsInMemory="10000"
+           eternal="false"
+           overflowToDisk="false"
+           timeToIdleSeconds="9000"
+           timeToLiveSeconds="72000"
+           memoryStoreEvictionPolicy="LFU"
+            />
+
+    <cache name="weibo-user"
+           maxElementsInMemory="10000"
+           eternal="false"
+           overflowToDisk="false"
+           timeToIdleSeconds="9000"
+           timeToLiveSeconds="72000"
+           memoryStoreEvictionPolicy="LFU"
+            />
+
+
+
+</ehcache>

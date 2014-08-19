@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<configuration>
+	<appender name="dest1" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d %-40c %-5p %m%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="dest2"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender -->
+		<!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy -->
+		<!--for further documentation -->
+		<file>smcs-keyword.log</file>
+		<encoder>
+			<pattern>%d %-40c %-5p %m%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>smcs-keyword.%d{yyyy-MM-dd HH}.log.gz
+			</fileNamePattern>
+			<maxHistory>48</maxHistory>
+		</rollingPolicy>
+	</appender>
+
+	<appender name="dest3" class="ch.qos.logback.core.FileAppender">
+		<file>smcs-keyword.log</file>
+		<append>true</append>  
+		  <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+		<encoder><pattern>%d %-40c %-5p %m%n</pattern></encoder>
+	</appender>
+
+	<root level="info">
+	
+		<appender-ref ref="dest1" />
+		<appender-ref ref="dest2" />
+
+	</root>
+</configuration>

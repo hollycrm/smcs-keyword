@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+       default-lazy-init="true">
+
+    <description>Spring Email</description>
+
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="${email.host}"/>
+        <property name="username" value="${email.username}"/>
+        <property name="password" value="${email.password}"/>
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.smtp.auth">${email.smtp.auth}</prop>
+                <!-- 使用gmail smtp server的必须参数 -->
+                <prop key="mail.smtp.starttls.enable">${email.smtp.starttls.enable}</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="mailService" class="com.hollycrm.smcs.email.EmailService" depends-on="templateService">
+        <property name="mailSender" ref="mailSender"/>
+        <property name="templeService" ref="templateService"/>
+        <property name="defaultEncoding">
+            <value>${email.encoding}</value>
+        </property>
+        <property name="from">
+            <value>${email.from}</value>
+        </property>
+    </bean>
+    
+    <bean id="simpleMailSender" class="com.hollycrm.smcs.email.SimpleMailSender" depends-on="templateService">
+        <property name="templeService" ref="templateService"/>
+        <property name="mailServerHost">
+            <value>${mail.server.host}</value>
+        </property>
+        <property name="mailServerPort">
+            <value>${mail.server.port}</value>
+        </property>
+        <property name="fromAddress">
+            <value>${mail.from}</value>
+        </property>
+        <property name="userName">
+            <value>${mail.username}</value>
+        </property>
+        <property name="password">
+            <value>${mail.password}</value>
+        </property>
+        <property name="validate">
+            <value>${mail.validate}</value>
+        </property>
+    </bean>
+
+
+</beans>
