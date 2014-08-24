@@ -32,7 +32,7 @@ public class HttpClientTest {
 		ApplicationContextHolder.init();
 		AppConfig.init("smcs-keyword.properties");
 		//client = new CommonHttpClient();
-		client = new LoginClient("sghakww1@sina.com", "12345678Az", 1L, 5075829468L);
+		client = new LoginClient("sghakww8512@163.com", "mn19851229", 1L, 5075829468L);
 		//client = new LoginClient("shecook@sina.com", "wenyi84784001", null, 2608705907L);
 		//AuthClient client = new AuthClient("3474291478","6fc43b27d2f969c51824ef05c104ac9d","sghakww8512@163.com","flymotor1231",1L);
 		//client.authorizeSina();

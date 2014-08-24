@@ -41,7 +41,7 @@ public abstract class AbsSecurityCode implements ISecurityCode{
 	@Override
 	public String getDoor(String key) throws NoInputSecurityCodeException {
 		String door = "";
-		for(int i=0;i<=6;i++){
+		for(int i=0;i<=12;i++){
 			try {
 				door = securityCodeProxy.getSecurityCode(key, getType());
 				if(door != null){
