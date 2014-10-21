@@ -71,11 +71,11 @@ public class AppLauncher {
 		app.transformKeywordScheduler.polling();
 		app.transformKeywordDispatcher.polling();
 		
-		app.boardScheduler.polling();
-		app.boardDispatcher.polling();			
+		//app.boardScheduler.polling();
+		//app.boardDispatcher.polling();			
 		//app.boardFragmentDispatcher.polling();
-		app.boardTransformScheduler.polling();
-		logger.info("抓取关键字、留言板服务启动成功");
+		//app.boardTransformScheduler.polling();
+		logger.info("抓取关键字服务启动成功");
 		
 		
 	}

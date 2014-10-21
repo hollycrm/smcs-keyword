@@ -1,5 +1,6 @@
 package com.hollycrm.smcs.http;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.junit.Test;
 
 import com.hollycrm.smcs.entity.receive.ReceiveMessage;
@@ -22,7 +24,10 @@ public class TestContinue {
 
 	@Test
 	public void testContinue(){
-		System.out.println(new Date(1390615409000L));
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH");
+		Date now = new Date();
+		Date halfOfHourBefore = DateUtils.addHours(now, -12);
+		System.out.println(sdf.format(halfOfHourBefore));
 	}
 	
 	@Test

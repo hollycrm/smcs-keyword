@@ -1,5 +1,7 @@
 package com.hollycrm.smcs.http;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +29,7 @@ public class HttpClientTest {
 	private String appKey = "3474291478";
 	private String appSecret = "6fc43b27d2f969c51824ef05c104ac9d";
 	
-	@Before
+	//@Before
 	public void init() throws Exception{
 		ApplicationContextHolder.init();
 		AppConfig.init("smcs-keyword.properties");
@@ -113,9 +115,9 @@ public class HttpClientTest {
 	@Test
 	public void downPic() throws Exception {
 		client = new HttpClient();
-		String a = client.downloadPic("http://ww2.sinaimg.cn/bmiddle/85128273tw1e4j3d42kx1j20ku25cwme.jpg",
-				"upload", ".jpg", "private");
-		System.out.println(a);
+		byte [] fileByte = client.httpGetWithByte("http://bcscdn.baidu.com/kanbaidu%2Fv%2Fpeixun%2F20140827%2F896d2cb2-3fbe-4523-85ad-451072735100%2F8452c662-8db6-4829-bfd3-ef79e91fa558%2Fcamera_out_low.mp4?sign=MBO%3ADdAwfjdWB9URJw1OTx8Y6Feu%3A39IA8c1M%2F05UlLKQ%2BqAw4SlK9IQ%3D");
+		FileOutputStream fos = new FileOutputStream(new File("C:\\Users\\dingqinjian\\Downloads\\aaa.mp4"));
+		fos.write(fileByte);
 	}
 	
 	@Test

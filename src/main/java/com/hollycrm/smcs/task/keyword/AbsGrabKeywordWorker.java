@@ -45,7 +45,7 @@ public abstract class AbsGrabKeywordWorker extends AbsGrabMessageWorker {
 	private final ISecurityCode iSecurityCode;
 	
 	private final IMessageFilter messageFilter;
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-hh");
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH");
 	
 	
 
@@ -167,7 +167,7 @@ public abstract class AbsGrabKeywordWorker extends AbsGrabMessageWorker {
 			}
 		}
 		Date now = new Date();
-		Date halfOfHourBefore = DateUtils.addMinutes(now, -30);
+		Date halfOfHourBefore = DateUtils.addHours(now, -12);
 		if (!grabHtml.isFirst()) {
 			url += "&timescope=custom:" + sdf.format(halfOfHourBefore) + ":" + sdf.format(now);
 		}
