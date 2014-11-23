@@ -2,13 +2,17 @@ package com.hollycrm.smcs.http.pm;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbsPrivateMessage {
 	
-
-	protected static final String MESSAGE_DETAIL = "\"pid\":\"pl_content_messageDetail\"";
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
-	protected static final String MESSAGE_LIST = "\"pid\":\"pl_content_messageList\"";
+
+	protected static final String MESSAGE_DETAIL = "\"domid\":\"v6_pl_content_messagedetail\"";
+	
+	protected static final String MESSAGE_LIST = "\"domid\":\"v6_pl_content_messagelist\"";
 	
 	protected static final String V_PAGE_STYLE = "div.W_pages";
 	
@@ -29,7 +33,11 @@ public abstract class AbsPrivateMessage {
 	}
 	
 	public void setCurrentMaxId(Long maxId) {
-		this.maxId = maxId;
+		if(this.maxId == null || maxId == null) {
+			this.maxId = maxId;
+			return;
+		}		
+		this.maxId = this.maxId >= maxId ? this.maxId : maxId;
 	}
 
 	public boolean containsHtml(String html) {		

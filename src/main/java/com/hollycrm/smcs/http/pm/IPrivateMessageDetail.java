@@ -18,10 +18,13 @@ public interface IPrivateMessageDetail extends IPrivateMessage{
 	
 	String getAttachStyle();
 	
+	String getPicStyle();
+	
 	String getFileName(Element element);
 	
 	String getFileSize(Element element);
 	
 	String getUploadUrl(Element element);
+	
 	
 }

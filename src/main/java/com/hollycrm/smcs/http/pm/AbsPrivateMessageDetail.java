@@ -42,7 +42,7 @@ public abstract class AbsPrivateMessageDetail extends AbsPrivateMessage implemen
 		worker.readMessageDetail(element, this, client, mid);
 	}
 
-	private PrivateMax privateMaxId;
+	protected PrivateMax privateMaxId;
 	public AbsPrivateMessageDetail(Long bloggerId, Long groupId) {
 		super(bloggerId, groupId);
 	}
@@ -121,14 +121,15 @@ public abstract class AbsPrivateMessageDetail extends AbsPrivateMessage implemen
 		return AppConfig.get("privateTalkUrl");
 	}
 
-	@Override
-	public Elements parsehtml(Document document) {
-		return document.getElementsByAttributeValue("node-type", "messageList").first().select("div.R_msg");
-	}
+	
 
 	@Override
 	public String getMsgText(Element element) {
-		return face(element.select(getMsgTextStyle()).first().toString());
+		Element elementT = element.select(getMsgTextStyle()).first();
+		if(elementT == null){
+			return "";
+		}
+		return face(elementT.toString());
 	}
 	
 	private String face(String bodyHtml){

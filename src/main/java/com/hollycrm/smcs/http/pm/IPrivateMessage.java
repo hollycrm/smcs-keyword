@@ -5,6 +5,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.hollycrm.smcs.http.IHttpClient;
+import com.hollycrm.smcs.task.AbsGrabMessageWorker;
 import com.hollycrm.smcs.task.IGrabHtml;
 import com.hollycrm.smcs.task.pm.AbsGrabPrivateMessageWorker;
 
@@ -17,7 +18,7 @@ public interface IPrivateMessage {
 	 */
 	boolean containsHtml(String html);
 	
-	Elements parsehtml(Document document);
+	Elements getTheElements(AbsGrabMessageWorker worker, IHttpClient client, IGrabHtml grabHtml) throws Exception;
 	
 	/**
 	 * 解析mid
@@ -57,5 +58,9 @@ public interface IPrivateMessage {
 	void dealMsgElement(Element element, AbsGrabPrivateMessageWorker worker , IHttpClient client, Long mid) throws Exception;
 	
 	void endBeforeMessage(Long currentId, Long uid, Long groupId);
+	
+	boolean isContinue();
+	
+	void setCurrentId(Long mid);
 	
 }

@@ -40,7 +40,7 @@ public abstract class AbsGrabMessageWorker implements Runnable {
 	protected static final String HTML = "html";
 
 	/****/
-	protected static final int SUBSTRING_BEGIN = 41;
+	protected static final int SUBSTRING_BEGIN = 8;
 	
 	protected static final String SINA_MEDIA_TYPE = "w";
 
@@ -95,7 +95,7 @@ public abstract class AbsGrabMessageWorker implements Runnable {
 	 * @return
 	 * @throws Exception
 	 */
-	protected Elements script(IHttpClient client, String url) throws Exception {
+	public Elements script(IHttpClient client, String url) throws Exception {
 		logger.info("抓取页面url:"+url);
 		String entity = null;
 		try{

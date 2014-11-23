@@ -95,7 +95,7 @@ public class LoginClient extends AbstractHttpClient{
 	
 	
 	public static  String getElementFromHtml(String html, String key){
-		final String p = "$CONFIG['"+key+"'] = ";
+		final String p = "$CONFIG['"+key+"']=";
 		int start = html.indexOf(p);
 		if(start == -1){
 			throw new NoSuchElementException("not element"+p);
@@ -105,7 +105,7 @@ public class LoginClient extends AbstractHttpClient{
 	}
 	
 	public static  boolean isContainLogin(String html){
-		if(html.indexOf("$CONFIG['islogin'] = '1'")!=-1){
+		if(html.indexOf("$CONFIG['islogin']='1'")!=-1){
 			return true;
 		}
 		return false;
@@ -128,7 +128,7 @@ public class LoginClient extends AbstractHttpClient{
 			return false;
 		}catch(Exception e){
 			logger.info(e.getLocalizedMessage(), e);
-			if(html.indexOf("$CONFIG['islogin'] = '1'")!=-1){
+			if(html.indexOf("$CONFIG['islogin']='1'")!=-1){
 				return true;
 			}
 			return false;

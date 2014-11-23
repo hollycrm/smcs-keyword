@@ -3,9 +3,13 @@ package com.hollycrm.smcs.http.pm.impl;
 import java.util.Date;
 
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import com.hollycrm.smcs.config.AppConfig;
+import com.hollycrm.smcs.http.IHttpClient;
 import com.hollycrm.smcs.http.pm.AbsPrivateMessageDetail;
+import com.hollycrm.smcs.task.AbsGrabMessageWorker;
+import com.hollycrm.smcs.task.IGrabHtml;
 import com.hollycrm.smcs.task.pm.AbsGrabPrivateMessageWorker;
 
 
@@ -76,6 +80,35 @@ public class VPrivateMessageDetail extends AbsPrivateMessageDetail{
 	@Override
 	protected String formatMsgText(String text) {
 		return  text.substring(text.indexOf("：") + 1);
+	}
+
+
+	@Override
+	public Elements getTheElements(AbsGrabMessageWorker worker,
+			IHttpClient client, IGrabHtml grabHtml) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public boolean isContinue() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+	@Override
+	public void setCurrentId(Long mid) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public String getPicStyle() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

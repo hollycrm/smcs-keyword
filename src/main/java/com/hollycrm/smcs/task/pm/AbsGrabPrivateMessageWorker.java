@@ -1,12 +1,10 @@
 package com.hollycrm.smcs.task.pm;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
@@ -61,7 +59,6 @@ public abstract class AbsGrabPrivateMessageWorker extends AbsGrabPrivateAndNoteM
 	
 	private Event event;
 	
-	private boolean isUidFirst;
 	
 	protected Long uidMaxId;
 	
@@ -97,7 +94,7 @@ public abstract class AbsGrabPrivateMessageWorker extends AbsGrabPrivateAndNoteM
 				return;
 			}
 			
-			execute(client, getIPrivateMessage(), getIPrivateMessage().getAccessPageUrl());
+			execute(client, getIPrivateMessage());
 		}catch(Exception e){
 			logger.error(e.getLocalizedMessage());
 		}finally{
@@ -113,37 +110,23 @@ public abstract class AbsGrabPrivateMessageWorker extends AbsGrabPrivateAndNoteM
 	 * 按所处的页面处理页面的内容
 	 * @param client
 	 * @param iPrivateMessage 所处的页面类
-	 * @param url
 	 * @throws Exception
 	 */
 	
-	public void execute(IHttpClient client, IPrivateMessage iPrivateMessage, String url) throws Exception{		
-		int page = 1;
-		String pageUrl = url+"&page=";
+	public void execute(IHttpClient client, IPrivateMessage iPrivateMessage) throws Exception{		
 		try{
-			label:	for(int i = 1;i <= page;i++) {				
-				Elements elements = script(client, pageUrl+i);
-				for(Element element :elements){
-					String html = element.html();
-					if (iPrivateMessage.containsHtml(html)) {	
-						Document messageListDoc = doc(html);
-							if(i == 1){
-								page = iPrivateMessage.parsePage(grabHtml.isFirst(), messageListDoc);
-							}
-							Elements links = iPrivateMessage.parsehtml(messageListDoc);
-							if(links.isEmpty()){
-								break label;
-							}
-							for(Element bloggerDiv:links){							
-								Long mid = iPrivateMessage.getMid(bloggerDiv);									
-								if(!iPrivateMessage.isInRange(grabHtml, mid, uidMaxId)){
-									break label;
-								}
-								doNextStep(bloggerDiv,iPrivateMessage, client, mid);
-							}
-						break;
-					}
+		 labelA:while(iPrivateMessage.isContinue()) {				
+				Elements links = iPrivateMessage.getTheElements(this, client, grabHtml);
+				if(links == null || links.isEmpty()){
+					break;
 				}
+				for(Element element:links){							
+					Long mid = iPrivateMessage.getMid(element);									
+					if(!iPrivateMessage.isInRange(grabHtml, mid, uidMaxId)){
+						break labelA;
+					}
+					doNextStep(element,iPrivateMessage, client, mid);
+				}				
 				Thread.sleep(iPrivateMessage.getPageSleepTime());
 			}
 		
@@ -193,8 +176,12 @@ public abstract class AbsGrabPrivateMessageWorker extends AbsGrabPrivateAndNoteM
 				if(!deal){
 					deal=true;
 				}
-				initIdUser();					
-				saveEventLong(mid,event,createdTime1,talkStr,"2",idUser);										
+				initIdUser();
+				List<ExtraFile> extraList = readExtraFile( element, iPrivateMessage, client, mid);
+				if(!extraList.isEmpty()) {
+					talkStr += extraList.get(0).getFileOldName();
+				}
+				saveEventLong(mid,event,createdTime1,talkStr,"2",idUser, extraList);										
 			}
 		}
 		sum++;
@@ -217,31 +204,25 @@ public abstract class AbsGrabPrivateMessageWorker extends AbsGrabPrivateAndNoteM
 	 * **/
 	public void readMessageList(Element element, IHttpClient client) throws Exception{
 		uid = Long.parseLong(element.attr("uid"));
-		isUidFirst = true;
 		uidMaxId = -1L;
 		event = null;
 		deal = false;
 		iPrivateMessageDetail.setCurrentMaxId(null);
+		iPrivateMessageDetail.setCurrentId(Long.MAX_VALUE);
 		iPrivateMessageDetail.setUid(uid);
 		//eventLogs.clear();
-		execute(client, iPrivateMessageDetail, iPrivateMessageDetail.getAccessPageUrl());
+		execute(client, iPrivateMessageDetail);
 		iPrivateMessageDetail.setUid(null);
 	}
 	
 
 	@Override
 	protected void dealCurrentMid(Long mid) {
-		if(isFirst){
-			iPrivateMessageList.setCurrentMaxId(mid);
-			isFirst = false;
-			firstMid = mid;
-		}
-		currentId = mid;
-		if(isUidFirst){
-			iPrivateMessageDetail.setCurrentMaxId(mid);
-			uidMaxId = mid;
-			isUidFirst = false;
-		}
+		uidMaxId= mid > uidMaxId ? mid : uidMaxId;
+		iPrivateMessageList.setCurrentMaxId(mid);		
+		currentId = mid;		
+		iPrivateMessageDetail.setCurrentMaxId(mid);
+		
 		
 	}
 
@@ -259,39 +240,80 @@ public abstract class AbsGrabPrivateMessageWorker extends AbsGrabPrivateAndNoteM
 	
 	private List<ExtraFile> readExtraFile(Element element, IPrivateMessageDetail iPrivateMessage, 
 			IHttpClient client,Long mid){
-		Elements picList = element.select(iPrivateMessage.getAttachStyle());
-		List<ExtraFile> extraList = null;		
-		if(picList.isEmpty()){
-			extraList = Collections.EMPTY_LIST;
-		}
-		
-		extraList = new ArrayList<ExtraFile>(picList.size());				
-		for(Element picElement:picList){
+		Elements fileList = element.select("div.private_file_mod");
+		List<ExtraFile> extraList = null;
+		Elements picList = element.select("div.pic_box");
+		extraList = new ArrayList<ExtraFile>();				
+		for(Element fileElement:fileList){
 			try{
 			ExtraFile ef=new ExtraFile();
-			ef.setFileOldName(iPrivateMessage.getFileName(picElement));
-			ef.setFileSize(getFileSize(iPrivateMessage.getFileSize(picElement)));	
-			String uploadUrl = iPrivateMessage.getUploadUrl(picElement);
+			getFileNameAndSize(ef, fileElement);
+			String uploadUrl = getFileDownloadUrl(fileElement);
 			if(StringUtils.isNotBlank(uploadUrl)){
 				ef.setFileNewName(client.downloadPic(uploadUrl, "upload", 
 						getSuffix(ef.getFileOldName()), "private"));
 			}
-			ef.setUploadUrl(uploadUrl);
-			Element url=picElement.select("img").first();
-			ef.setSid(mid);
-			if(url!=null){
-				ef.setFileUrl(url.attr("src"));
-			}
+			ef.setUploadUrl(uploadUrl);			
+			ef.setSid(mid);			
 			extraList.add(ef);
 			}catch(Exception e){
 				continue;
 			}
 		}
+		
+		for(Element picElement : picList) {
+			try{
+				ExtraFile ef=new ExtraFile();
+				ef.setFileOldName("分享图片");
+				String uploadUrl = getPicDownloadUrl(picElement);
+				if(StringUtils.isNotBlank(uploadUrl)){
+					ef.setFileNewName(client.downloadPic(uploadUrl, "upload", 
+							getSuffix(ef.getFileOldName()), "private"));
+				}
+				ef.setUploadUrl(uploadUrl);			
+				ef.setSid(mid);			
+				extraList.add(ef);
+				
+			}catch(Exception e){
+				
+			}
+			
+		}
+		
 		return extraList;
 	}
 	
+	String getPicDownloadUrl(Element element) {
+		Element downElement = element.select("img.dialogue_img").first();
+		if(downElement == null) {
+			return null;
+		}
+		return downElement.attr("src");
+	}
 	
-	private void saveEventLong(Long mid, Event event, Date date, String text, String type,IdUser idUser) {
+	String getFileDownloadUrl(Element element) {
+		Element downElement = element.select("a.download").first();
+		if(downElement == null) {
+			return null;
+		}
+		return downElement.attr("href");
+	}
+	
+	void getFileNameAndSize(ExtraFile file, Element element){
+		Elements elements = element.select("span.name");
+		if(elements.isEmpty()){
+			file.setFileOldName("");
+		}
+		String text = elements.first().text();
+		String [] texts = text.split(" ");
+		file.setFileOldName(texts[0]);
+		file.setFileSize(texts[1]);
+	}
+	
+	
+	
+	
+	private void saveEventLong(Long mid, Event event, Date date, String text, String type,IdUser idUser, List<ExtraFile> extraList) {
 		EventLog log = new EventLog();
 		log.setMediaType(SINA_MEDIA_TYPE);
 		log.setUser(idUser);
@@ -302,6 +324,7 @@ public abstract class AbsGrabPrivateMessageWorker extends AbsGrabPrivateAndNoteM
 		log.setFetch(true);
 		log.setDealTime(date);
 		eventLogService.save(log);
+		
 		//eventLogs.add(log);
 	}
 	

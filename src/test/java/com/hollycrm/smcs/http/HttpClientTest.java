@@ -60,6 +60,8 @@ public class HttpClientTest {
 		System.out.println(html);
 	}
 	
+	
+	
 	@Test
 	public void focus() throws InvalidHttpClientException, Exception{
 		Map<String, String> map = new HashMap<String, String>();

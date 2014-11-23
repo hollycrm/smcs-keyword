@@ -8,13 +8,13 @@ import com.hollycrm.smcs.http.pm.impl.VPrivateMessageList;
 public abstract class PrivateMessageListFactory {
 	
 	public static IPrivateMessageList getPrivateMessageList(Long bloggerId, Long groupId, int type){
-		IPrivateMessageList privateMessage = null;
+		/*IPrivateMessageList privateMessage = null;
 		if(type == OfficalBlog.HAVE_V){
 			privateMessage = new VPrivateMessageList(bloggerId, groupId);
 		}else if(type == OfficalBlog.NO_V){
 			privateMessage = new NoVPrivateMessageList(bloggerId, groupId);
-		}
-		return privateMessage;
+		}*/
+		return new NoVPrivateMessageList(bloggerId, groupId);
 	}
 
 }

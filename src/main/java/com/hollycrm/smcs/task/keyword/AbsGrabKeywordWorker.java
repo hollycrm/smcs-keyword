@@ -104,7 +104,7 @@ public abstract class AbsGrabKeywordWorker extends AbsGrabMessageWorker {
 							break lableA;
 						}
 						
-						links = searchFeed.select("dl.feed_list");
+						links = searchFeed.getElementsByAttributeValue("action-type", "feed_list_item");
 						if(links.isEmpty()){
 							break lableA;
 						}
@@ -167,10 +167,11 @@ public abstract class AbsGrabKeywordWorker extends AbsGrabMessageWorker {
 			}
 		}
 		Date now = new Date();
-		Date halfOfHourBefore = DateUtils.addHours(now, -12);
+		Date halfOfHourBefore = DateUtils.addHours(now, -2);
 		if (!grabHtml.isFirst()) {
 			url += "&timescope=custom:" + sdf.format(halfOfHourBefore) + ":" + sdf.format(now);
 		}
+		url += "&nodup=1";
 		return url + KeywordConstant.SINA_SOSO_URL_PARAMS;
 		
 	}
@@ -185,7 +186,7 @@ public abstract class AbsGrabKeywordWorker extends AbsGrabMessageWorker {
 	private boolean matchContent(Element link){
 		try{
 			return messageFilter.filter(link.getElementsByAttributeValue("node-type", "feed_list_content")
-					.first().select("em").first().text(), avaliableKeyword.getKey().split(Condition.SPLIT_KEYWORD), 
+					.first().text(), avaliableKeyword.getKey().split(Condition.SPLIT_KEYWORD), 
 					avaliableKeyword.getExclusiveKey().split(Condition.SPLIT_KEYWORD));
 		}catch(Exception e){
 			logger.error(e.toString(),e);

@@ -59,7 +59,7 @@ public class GrabPrivateMessageHtml extends AbsGrabNormalHtml{
 
 	@Override
 	public void errorDeal(Long currentId, Long firstMid, Long uid) {
-		if((sinceId != null) && (currentId != null) && (uid != null)) {			
+		if((currentId != null) && (uid != null)) {			
 			generateAndSaveFragment(currentId,uid);
 		}
 	}

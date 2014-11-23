@@ -10,16 +10,13 @@ public class NoteMessage implements INoteMessage{
 
 	@Override
 	public String contentNoteMessageScript() {
-		return "\"pid\":\"pl_content_notebox\"";
+		return "\"domid\":\"v6_pl_content_notebox\"";
 	}
 
 	@Override
 	public Elements getNoteMessageElements(Document doc) {
-		Elements msgDialogueElement = doc.select("div.msg_dialogue");
-		if(msgDialogueElement.isEmpty()){
-			return msgDialogueElement;
-		}		
-		return msgDialogueElement.first().children();
+		return doc.select("div.msg_bubble_list");
+	
 	}
 
 }

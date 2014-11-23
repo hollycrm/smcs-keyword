@@ -50,12 +50,7 @@ public abstract class AbsGrabNoteMessageWorker extends AbsGrabPrivateAndNoteMess
 	@Override
 	public void run() {
 		try{
-			grabHtml.initSinceId();
-			int pageNo = NORMAL_GRAB_PAGE;
-			/** 如果第一次登录默认只取两页 **/
-			if (grabHtml.isFirst()) {
-				pageNo = FIRST_GRAB_PAGE;
-			}
+			grabHtml.initSinceId();			
 			IHttpClient client = grabHtml.obtainHttpClient(); 			
 			if(client == null){
 				logger.info("groupId{"+groupId+"},bloggerId{"+bloggerId+"抓取留言时获取httpclient失败");
@@ -68,7 +63,8 @@ public abstract class AbsGrabNoteMessageWorker extends AbsGrabPrivateAndNoteMess
 			Long uid = null;
 			String msgBoxText = null;
 			Date msgBoxDate = null;
-			lablePage:for(int i =1;i <= pageNo; i++){
+			boolean isContinue = true;
+			lablePage:for(int i =1; isContinue; i++){
 				notePage = script(client,NOTE_URL + i);
 				if(notePage.isEmpty()){
 					break;
@@ -76,26 +72,27 @@ public abstract class AbsGrabNoteMessageWorker extends AbsGrabPrivateAndNoteMess
 				for(Element element : notePage){
 					eachElementHtml = element.html();
 					if(eachElementHtml.contains(noteMessage.contentNoteMessageScript())) {
-						msgBoxs = noteMessage.getNoteMessageElements(doc(eachElementHtml));
+						Document doc = doc(eachElementHtml);
+						if(!isHasNextPage(doc)) {
+							isContinue = false; 
+						}
+						msgBoxs = noteMessage.getNoteMessageElements(doc);
 						if(msgBoxs.isEmpty()){
 							break lablePage;
 						}
 						for(Element msgBox:msgBoxs){
-							if(msgBox.hasClass("msg_time_line")) {
-								msgBoxDate = date(msgBox.select("legend.time_tit").first().text());
-							}else if(msgBox.hasClass("msg_dialogue_list")){
-								mid = Long.parseLong(msgBox.attr("mid"));
-								if(!grabHtml.isInRange(mid)){
-									break lablePage;
-								}
-								uid = Long.parseLong(msgBox.attr("uid"));
-								msgBoxText = face(msgBox.select("p.msg_dia_txt").first().toString());									
-								List<ExtraFile> attachFile = readAttachFile(msgBox.select("div.msg_attachment"), client, mid);
-								logger.info(String.format("抓取留言：mid=%s,uid=%s,msgBoxText=%s,msgBoxDate=%s", mid,uid,msgBoxText,msgBoxDate));
-								saveDirectMessage(uid, mid, msgBoxDate, msgBoxText, false, attachFile,bloggerId, groupId, null);
-								dealCurrentMid(mid);
-								sum++;
+							mid = Long.parseLong(msgBox.attr("mid"));
+							if(!grabHtml.isInRange(mid)){
+								break lablePage;
 							}
+							uid = Long.parseLong(msgBox.attr("uid"));
+							msgBoxDate = date(msgBox.select("p.data ").first().text());
+							msgBoxText = face(msgBox.select("p.cont_font").first().toString());									
+							List<ExtraFile> attachFile = readAttachFile(msgBox, client, mid);
+							logger.info(String.format("抓取留言：mid=%s,uid=%s,msgBoxText=%s,msgBoxDate=%s", mid,uid,msgBoxText,msgBoxDate));
+							saveDirectMessage(uid, mid, msgBoxDate, msgBoxText, false, attachFile,bloggerId, groupId, null);
+							dealCurrentMid(mid);
+							sum++;
 						}
 						break;
 					}
@@ -115,28 +112,31 @@ public abstract class AbsGrabNoteMessageWorker extends AbsGrabPrivateAndNoteMess
 		
 	}
 	
-
-	
-	private List<ExtraFile> readAttachFile(Elements elements, IHttpClient client, Long mid){
-		if(elements.isEmpty()){
-			return Collections.EMPTY_LIST;
+	boolean isHasNextPage(Document doc){
+		Element page = doc.select("div.W_pages").first();
+		if(page != null ){
+			Element next = page.select("a.next").first();
+			if(!next.hasClass("page_dis")){
+				return true;
+			}
+			return false;
 		}
-		List<ExtraFile> list = new ArrayList<ExtraFile>(elements.size());
+		return false;
+	}
+	
+	private List<ExtraFile> readAttachFile(Element element, IHttpClient client, Long mid){
+		
+		List<ExtraFile> list = new ArrayList<ExtraFile>();
 		ExtraFile extraFile = null;
-		for(Element element:elements){
+		Elements fileElements = element.select("div.private_file_mod"); 
+		for(Element fileElement:fileElements){
 			try{
 				extraFile = new ExtraFile();				
-				extraFile.setFileOldName(formatFileName(parseFileName(element)));
-				extraFile.setUploadUrl(parseUploadUrl(element));
+				setFileNameAndSize(extraFile, fileElement);
+				extraFile.setUploadUrl(parseUploadUrl(fileElement));
 				if(StringUtils.isNotBlank(extraFile.getUploadUrl())){
 					extraFile.setFileNewName(client.downloadPic(extraFile.getUploadUrl(), "upload", 
 							getSuffix(extraFile.getFileOldName()), "private"));
-				}
-				
-				extraFile.setFileSize(getFileSize(parseFileSize(element)));	
-				Element url=element.select("img").first();
-				if(url!=null){
-					extraFile.setFileUrl(url.attr("src"));
 				}
 				extraFile.setSid(mid);
 				list.add(extraFile);
@@ -144,16 +144,40 @@ public abstract class AbsGrabNoteMessageWorker extends AbsGrabPrivateAndNoteMess
 				logger.error(e.toString(),e);
 			}
 		}
+		
+		
+		Elements picElements = element.select("img.dialogue_img"); 
+		for(Element fileElement:picElements){
+			try{
+				extraFile = new ExtraFile();				
+				extraFile.setUploadUrl(fileElement.attr("src"));
+				if(StringUtils.isNotBlank(extraFile.getUploadUrl())){
+					extraFile.setFileNewName(client.downloadPic(extraFile.getUploadUrl(), "upload", 
+							getSuffix(extraFile.getFileOldName()), "private"));
+				}
+				extraFile.setSid(mid);
+				list.add(extraFile);
+			}catch(Exception e){
+				logger.error(e.toString(),e);
+			}
+		}
+		
 		return list;
 		
 	}
 	
+	private void setFileNameAndSize(ExtraFile extraFile, Element element) {
+		String name = element.select("span.name").first().text();
+		String [] names = name.split(" ");
+		
+		extraFile.setFileOldName(names[0]);
+		extraFile.setFileSize(names[1]);
+	}
+	
 	private String parseUploadUrl(Element element){
-		Elements elements = element.select("a");
-		for(Element aElement :elements){
-			if(aElement.html().indexOf("下载") != -1){
-				return aElement.attr("href");
-			}
+		Element dElement = element.select("a.download").first();
+		if(dElement != null) {
+			return dElement.attr("href");
 		}
 		return null;
 	}
@@ -203,7 +227,7 @@ public abstract class AbsGrabNoteMessageWorker extends AbsGrabPrivateAndNoteMess
 			talkText = talkText.replace(imgPart.toString(), title);
 		}
 		Document body1 = Jsoup.parseBodyFragment(talkText);		
-		return body1.select("p.msg_dia_txt").first().text();
+		return body1.select("p.cont_font").first().text();
 	}
 	
 
